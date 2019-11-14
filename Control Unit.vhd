@@ -4,23 +4,30 @@ USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 ENTITY CU IS
     PORT(
-        OPCODE   : IN STD_LOGIC_VECTOR(5 DOWNTO 0); 
-        FUNC     : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
+        Instr       : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        --OPCODE      : IN STD_LOGIC_VECTOR(5 DOWNTO 0); 
+        --FUNC        : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
         MemtoReg    : OUT STD_LOGIC;
         MemWrite    : OUT STD_LOGIC;
         Branch      : INOUT STD_LOGIC;
-        PCSrc       : OUT STD_LOGIC;    --????
-        ALUOP       : OUT STD_LOGIC_VECTOR(2 DOWNTO 0); -- 4-bit ALU Control for ALU Ops
+        PCSrc       : OUT STD_LOGIC;
+        IsBranch    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);     -- 2-bit Branch Signal for ALU
+        ALUOP       : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);     -- 4-bit ALU Control for ALU
         ALUSrc      : OUT STD_LOGIC;
         RegDst      : OUT STD_LOGIC;
-        ShiftAmount : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-        RegWrite    : OUT STD_LOGIC
+        RegWrite    : OUT STD_LOGIC;
+        Rot_Amount_In   : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
+        Rot_Amount_Out  : OUT STD_LOGIC_VECTOR(2 DOWNTO 0)
+        --Jump        : OUT STD_LOGIC;
     );
 END CU;
 
 ARCHITECTURE Behavioral OF CU IS
 
+SIGNAL OPCODE   : STD_LOGIC_VECTOR(5 DOWNTO 0);
+SIGNAL FUNC     : STD_LOGIC_VECTOR(5 DOWNTO 0);
 SIGNAL IsRType  : STD_LOGIC;
+--SIGNAL IsBranch : STD_LOGIC_VECTOR(1 DOWNTO 0);
 SIGNAL ANDI     : STD_LOGIC;
 SIGNAL ORI      : STD_LOGIC;
 SIGNAL LW       : STD_LOGIC;
@@ -30,12 +37,15 @@ SIGNAL BEQ      : STD_LOGIC;
 SIGNAL BNE      : STD_LOGIC;
 SIGNAL JMP      : STD_LOGIC;
 SIGNAL HLT      : STD_LOGIC;
-
-
-SIGNAL Input    : STD_LOGIC_VECTOR(5 DOWNTO 0);
+--SIGNAL InFun    : STD_LOGIC_VECTOR(5 DOWNTO 0);
 
 BEGIN
     
+OPCODE  <=  Instr(31 DOWNTO 26);
+FUNC    <=  Instr(5 DOWNTO 0);
+
+Rot_Amount_Out  <= Rot_Amount_in;
+
 --IsRType <=  '1' WHEN OPCODE = "000000" ELSE '0';
 ANDI    <=  '1' WHEN OPCODE = "000011" ELSE '0';
 ORI     <=  '1' WHEN OPCODE = "000100" ELSE '0';
@@ -55,13 +65,13 @@ RegWrite    <=  IsRType OR ANDI OR ORI OR LW;   --Double Check!!!
 MemToReg    <=  LW;
 MemWrite    <=  SW;
 
-Input   <=  FUNC(5 DOWNTO 0);
+--InFun   <=  FUNC(5 DOWNTO 0);
 
-PROCESS(OPCODE, Input)  --ALUOP SELECTION
+PROCESS(OPCODE, FUNC)  --ALUOP SELECTION
 BEGIN    
     IF (OPCODE = "000000") THEN
         IsRType <= '1';
-        CASE Input IS
+        CASE FUNC IS
             WHEN "010010" =>
                 ALUOP   <=  "000"; --AND
             WHEN "010011" =>
@@ -82,9 +92,21 @@ BEGIN
     ELSIF (OPCODE = "000011" OR OPCODE = "000111" OR OPCODE = "001000") THEN    --ANDI \\ LW \\ SW
         IsRType <=  '0';
         ALUOP   <=  "000";  --ALUOP 000 = ADD
-    ELSIF (OPCODE = "001001" OR OPCODE = "001010" OR OPCODE = "001011" OR OPCODE = "001100") THEN    --BLT \\ BEQ \\ BNE \\ JUMP
+    ELSIF (OPCODE = "001100") THEN    --JUMP
         IsRType <=  '0';
         ALUOP   <=  "000";
+    ELSIF (OPCODE = "001001") THEN  --BLT
+        IsRType     <=  '0';
+        IsBranch    <=  "00";
+        ALUOP       <=  "000";
+    ELSIF (OPCODE = "001010") THEN  --BEQ
+        IsRType     <=  '0';
+        IsBranch    <=  "01";
+        ALUOP       <=  "000";
+    ELSIF (OPCODE = "001011") THEN  --BNE
+        IsRType     <=  '0';
+        IsBranch    <=  "10";
+        ALUOP       <=  "000";
     ELSIF (OPCODE = "000100") THEN  --ORI
         IsRType <=  '0';
         ALUOP   <=  "001";  --ALUOP 001 = OR

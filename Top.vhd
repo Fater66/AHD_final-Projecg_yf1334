@@ -39,18 +39,18 @@ entity Top is
 end Top;
 
 architecture Behavioral of Top is
-signal pc_next_top: std_logic_vector(7 downto 0);
-signal pc_current_test: std_logic_vector(7 downto 0);
+signal pc_next_top: std_logic_vector(31 downto 0);
+signal pc_current_test: std_logic_vector(31 downto 0);
 signal addressout_top: std_logic_vector(31 downto 0);
 component pc port(
          clk			 : in std_logic;
 		 reset			 : in std_logic;
-		 pc_current      : in std_logic_vector(7 downto 0);--current should come from the mux
-		 pc_next         : out std_logic_vector(7 downto 0)
+		 pc_current      : in std_logic_vector(31 downto 0);--current should come from the mux
+		 pc_next         : out std_logic_vector(31 downto 0)
 		 );
 end component;
 component Imem port(
-        PCin: in std_logic_vector(7 downto 0);
+        PCin: in std_logic_vector(31 downto 0);
         rst: in std_logic;
         clk: in std_logic;
         addressout: out std_logic_vector(31 downto 0)
@@ -73,7 +73,7 @@ u_Imem: Imem port map(
 process(rst,clk)
 begin
     if(rst='1')then
-        pc_current_test<=x"00";
+        pc_current_test<=x"00000000";
     end if;
 end process;
     --elsif(clk'event and clk='1')then
