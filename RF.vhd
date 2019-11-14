@@ -54,11 +54,10 @@ signal A1: std_logic_vector(4 downto 0);
 signal A2: std_logic_vector(4 downto 0);
 
 begin
-A1<=instr(25 downto 21);
-A2<=instr(20 downto 16);
+A1<=instr(26 downto 22);
+A2<=instr(21 downto 17);
 readdata1<=drom(to_integer(unsigned(A1)));
 readdata2<=drom(to_integer(unsigned(A2)));
-
 process(clk,rst)
 begin
     if(rst='1')then
