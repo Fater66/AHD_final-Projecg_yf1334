@@ -34,7 +34,7 @@ USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity Imem is
  Port (
-        PCin: in std_logic_vector(7 downto 0);
+        PCin: in std_logic_vector(31 downto 0);
         rst: in std_logic;
         clk: in std_logic;
         addressout: out std_logic_vector(31 downto 0)
@@ -47,7 +47,7 @@ architecture Behavioral of Imem is
 TYPE rom IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
 CONSTANT irom: rom:=rom'( "00000000","00000001","00000010","00000011","00000100","00000101","00000110","00000111");
 --signal count:std_logic_vector(2 downto 0);
-signal count:std_logic_vector(7 downto 0);
+signal count:std_logic_vector(31 downto 0);
 
 begin
 count<=PCin;
