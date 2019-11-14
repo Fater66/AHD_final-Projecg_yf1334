@@ -34,10 +34,10 @@ USE ieee.numeric_std.ALL;
 
 entity dmem is
     Port (
-        wrtenable: in std_logic_vector(1 downto 0);--"10" write,"01" read
+        wrtenable: in std_logic;--"10" write,"01" read
         clk: in std_logic;
         rst: in std_logic;
-        addr: in std_logic_vector(3 downto 0);--32byte data
+        addr: in std_logic_vector(31 downto 0);--32byte data
         wrtdata: in std_logic_vector(31 downto 0);
         readdata: out std_logic_vector(31 downto 0)
         --currentwrtdata: out std_logic_vector(16 downto 0)
@@ -51,18 +51,19 @@ signal drom: rom:=rom'( "0000000000000000","0000000000000001","0000000000000010"
 --signal count:std_logic_vector(7 downto 0);
 
 begin
+drom(to_integer(unsigned(addr)))<= wrtdata(31 downto 16);
+drom(to_integer(unsigned(addr)+1))<= wrtdata(15 downto 0);
 process(clk,rst)
     begin
         if(rst='1') then
              readdata <="00000000000000000000000000000000";
         elsif(clk 'event and clk='1') then
-            if(wrtenable="01") then
+            if(wrtenable='1') then
                readdata<=drom(to_integer(unsigned(addr)))&drom(to_integer(unsigned(addr)+1));
-            elsif (wrtenable="10") then
-                drom(to_integer(unsigned(addr)))<= wrtdata(31 downto 16);
-                drom(to_integer(unsigned(addr)+1))<= wrtdata(15 downto 0);
-            else
-                 drom<=drom;
+--            elsif (wrtenable="10") then
+
+--            else
+--                 drom<=drom;
              end if;
            end if;
 end process;
