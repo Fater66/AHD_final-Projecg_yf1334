@@ -45,7 +45,7 @@ end Imem;
 architecture Behavioral of Imem is
 
 TYPE rom IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
-CONSTANT irom: rom:=rom'( "00000000","00000001","00000010","00000011","00000100","00000101","00000110","00000111");
+CONSTANT irom: rom:=rom'( "00010000","00000001","00000000","01111011","00010000","00000010","00000001","11001000");
 --signal count:std_logic_vector(2 downto 0);
 signal count:std_logic_vector(31 downto 0);
 
@@ -60,7 +60,6 @@ begin
     elsif(clk 'event and clk='1') then
         addressout<=irom(CONV_INTEGER(count))& irom(CONV_INTEGER(count+'1'))& irom(CONV_INTEGER(count+"10")) & irom(CONV_INTEGER(count+"11"));
     end if;
-
 end process;
 
 
