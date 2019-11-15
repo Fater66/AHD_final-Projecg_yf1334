@@ -97,8 +97,8 @@ with shiftamount select
                       Rs_Rt(6 downto 0)& Rs_Rt(31 downto 7) when "111",
                       Rs_Rt when others;
                       
--- with aluop(2 downto 0 )select
---            aluresult<= op1 and op2 when"000",
+--with aluop(2 downto 0 )select
+--           aluresult<= op1 and op2 when"000",
 --                        op1 or op2 when"001",
 --                        op1 nor op2 when"010",
 --                        xorleftrotate when "011",
@@ -106,20 +106,21 @@ with shiftamount select
 --                        Rsleftrotate + op2 when"101",
 --                        Rs_Rtrightrotate when"110",
 --                        x"00000000" when others;
-process(clk,rst)
+process(clk,rst,aluop)
 begin
     if(rst='1') then
        aluresult<=x"00000000";
-    elsif(clk'event and clk='1') then
+    --elsif(clk'event and clk='1') then
+    else
         case aluop is
             when"000" =>aluresult<= op1 and op2;
             when"001"=>aluresult<= op1 or op2;
             when"010"=>aluresult<= op1 nor op2;
             when "011"=>aluresult<=xorleftrotate;
-             when "100"=>aluresult<=Rsrightrotate;--多定义了一个功能，依次类推
-             when "101"=>aluresult<=Rsrightrotate xor op2;
-             when "110"=>aluresult<= Rsleftrotate + op2;
-             when "111"=>aluresult<= Rs_Rtrightrotate;
+             when "100"=>aluresult<=Rsrightrotate xor op2;
+             when "101"=>aluresult<=Rsleftrotate + op2;
+             when "110"=>aluresult<= Rs_Rtrightrotate;
+             --when "111"=>aluresult<= Rs_Rtrightrotate;
              when others=>aluresult<=x"00000000";
          end case;
     end if;

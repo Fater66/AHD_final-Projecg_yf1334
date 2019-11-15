@@ -58,7 +58,6 @@ A1<=instr(25 downto 21);
 A2<=instr(20 downto 16);
 readdata1<=drom(to_integer(unsigned(A1)));
 readdata2<=drom(to_integer(unsigned(A2)));
-
 process(clk,rst)
 begin
     if(rst='1')then
