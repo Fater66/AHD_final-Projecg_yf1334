@@ -52,6 +52,7 @@ signal drom: rom:=rom'( "0000000000000000","0000000000000001","0000000000000010"
 --signal count:std_logic_vector(7 downto 0);
 
 begin
+
 process(addr)
 begin
     if(unsigned(addr)<8)then
@@ -62,6 +63,7 @@ begin
        -- addrenable<='0';
     end if;
 end process;
+
 
 process(clk,rst)
     begin

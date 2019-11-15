@@ -21,7 +21,3 @@ begin
         pc_next <= x"00000000";
     elsif(rising_edge(clk)) then
         pc_next <= pc_current ;
-
-    end if;
-end process;
-end Behavioral;
