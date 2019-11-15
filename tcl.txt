@@ -1,0 +1,7 @@
+restart
+add_force {/Top/clk} -radix hex {0 0ns} {1 5000ps} -repeat_every 10000ps
+add_force {/Top/rst} -radix hex {1 0ns}
+run 20 ns
+add_force {/Top/rst} -radix hex {0 0ns}
+run 20 ns
+run 20 ns
