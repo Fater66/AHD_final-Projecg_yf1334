@@ -44,8 +44,8 @@ end Imem;
 
 architecture Behavioral of Imem is
 
-TYPE rom IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
-CONSTANT irom: rom:=rom'( "00010000","00000001","00000000","01111011","00010000","00000010","00000001","11001000");
+TYPE rom IS ARRAY (0 TO 15) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
+CONSTANT irom: rom:=rom'( "00010000","00000001","00000000","01111011","00010000","00000010","00000001","11001000","00000000","00100010","00011001","11010101","00000000","01100010","00100001","11010110");
 --signal count:std_logic_vector(2 downto 0);
 signal count:std_logic_vector(31 downto 0);
 

@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use IEEE.std_logic_signed.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -223,6 +223,8 @@ process(rst,clk)
 begin
     if(rst='1')then
         pc_current_test<=x"00000000";
+    elsif(rising_edge(clk)) then
+         pc_current_test <= pc_current_test + x"00000004";
     end if;
 end process;
     --elsif(clk'event and clk='1')then
