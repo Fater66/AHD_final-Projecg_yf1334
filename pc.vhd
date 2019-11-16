@@ -19,10 +19,10 @@ process(clk,reset)
 begin 
     if(reset='1') then
         pc_next <= x"00000000";
-    elsif(rising_edge(clk)) then
+    elsif(clk'event and clk='1') then
 --        if(Isjump='1')then 
 --            pc_next<= pc_current
-        pc_next <= pc_current + x"00000004";
+        pc_next <= pc_current;--+ x"00000004";
     end if;
 end process;
 end Behavioral;
