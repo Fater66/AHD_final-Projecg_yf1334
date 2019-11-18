@@ -51,6 +51,7 @@ signal Rsrightrotate:STD_LOGIC_VECTOR (31 downto 0);
 signal Rsleftrotate:STD_LOGIC_VECTOR (31 downto 0);
 signal Rs_Rtrightrotate:STD_LOGIC_VECTOR (31 downto 0);
 signal Rs_Rt:STD_LOGIC_VECTOR (31 downto 0);
+signal alucalculate : STD_LOGIC_VECTOR (31 downto 0):=x"00000000";
 
 
 begin
@@ -97,33 +98,34 @@ with shiftamount select
                       Rs_Rt(6 downto 0)& Rs_Rt(31 downto 7) when "111",
                       Rs_Rt when others;
                       
---with aluop(2 downto 0 )select
---           aluresult<= op1 and op2 when"000",
---                        op1 or op2 when"001",
---                        op1 nor op2 when"010",
---                        xorleftrotate when "011",
---                        Rsrightrotate xor op2 when "100",
---                        Rsleftrotate + op2 when"101",
---                        Rs_Rtrightrotate when"110",
---                        x"00000000" when others;
-process(clk,rst,aluop)
-begin
-    if(rst='1') then
-       aluresult<=x"00000000";
-    --elsif(clk'event and clk='1') then
-    else
-        case aluop is
-            when"000" =>aluresult<= op1 and op2;
-            when"001"=>aluresult<= op1 or op2;
-            when"010"=>aluresult<= op1 nor op2;
-            when "011"=>aluresult<=xorleftrotate;
-             when "100"=>aluresult<=Rsrightrotate xor op2;
-             when "101"=>aluresult<=Rsleftrotate + op2;
-             when "110"=>aluresult<= Rs_Rtrightrotate;
-             --when "111"=>aluresult<= Rs_Rtrightrotate;
-             when others=>aluresult<=x"00000000";
-         end case;
-    end if;
-end process;       
+with aluop(2 downto 0 )select
+          alucalculate<= op1 and op2 when"000",
+                        op1 or op2 when"001",
+                        op1 nor op2 when"010",
+                        xorleftrotate when "011",
+                        Rsrightrotate xor op2 when "100",
+                        Rsleftrotate + op2 when"101",
+                       Rs_Rtrightrotate when"110",
+                        x"00000000" when others;
+aluresult<= alucalculate;
+--process(clk,rst,aluop)
+--begin
+--    if(rst='1') then
+--       aluresult<=x"00000000";
+--    --elsif(clk'event and clk='1') then
+--    else
+--        case aluop is
+--            when"000" =>aluresult<= op1 and op2;
+--            when"001"=>aluresult<= op1 or op2;
+--            when"010"=>aluresult<= op1 nor op2;
+--            when "011"=>aluresult<=xorleftrotate;
+--             when "100"=>aluresult<=Rsrightrotate xor op2;
+--             when "101"=>aluresult<=Rsleftrotate + op2;
+--             when "110"=>aluresult<= Rs_Rtrightrotate;
+--             --when "111"=>aluresult<= Rs_Rtrightrotate;
+--             when others=>aluresult<=x"00000000";
+--         end case;
+--    end if;
+--end process;       
                  
 end Behavioral;

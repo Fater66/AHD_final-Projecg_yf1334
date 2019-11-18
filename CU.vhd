@@ -18,6 +18,7 @@ ENTITY CU IS
         RegDst      : OUT STD_LOGIC;
         RegWrite    : OUT STD_LOGIC;
         IsJump      : OUT STD_LOGIC;
+        --IsBranch    : OUT STD_LOGIC;
         --Rot_Amount_In   : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
         Rot_Amount  : OUT STD_LOGIC_VECTOR(2 DOWNTO 0)
         --Jump        : OUT STD_LOGIC;
@@ -46,7 +47,6 @@ BEGIN
 OPCODE      <=  Instr(31 DOWNTO 26);
 FUNC        <=  Instr(5 DOWNTO 0);
 Rot_Amount  <=  Instr(9 DOWNTO 7);
-IsJump  <= JMP;         --jump judge
 --IsRType <=  '1' WHEN OPCODE = "000000" ELSE '0';
 ANDI    <=  '1' WHEN OPCODE = "000011" ELSE '0';
 ORI     <=  '1' WHEN OPCODE = "000100" ELSE '0';
@@ -56,8 +56,9 @@ BLT     <=  '1' WHEN OPCODE = "001001" ELSE '0';
 BEQ     <=  '1' WHEN OPCODE = "001010" ELSE '0';
 BNE     <=  '1' WHEN OPCODE = "001011" ELSE '0';
 JMP     <=  '1' WHEN OPCODE = "001100" ELSE '0';
+IsJump  <= JMP;         --jump judge
+--Isbranch<= BEQ or BNE;
 HLT     <=  '1' WHEN OPCODE = "111111" ELSE '0';
-
 RegDst      <=  IsRType;                        --When R Type, RegDst is 1 else 0
 ALUSrc      <=  ANDI OR ORI OR LW OR SW;        --When I Type,  ALUSrc is 1 else 0.
 Branch      <=  BLT OR BEQ OR BNE;              --When is Branch, Branch -> 1

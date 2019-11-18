@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.std_logic_signed.all;
+use IEEE.std_logic_unsigned.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -39,8 +39,16 @@ entity Top is
 end Top;
 
 architecture Behavioral of Top is
-signal pc_out: std_logic_vector(31 downto 0);
-signal pc_next: std_logic_vector(31 downto 0);
+--pc
+signal pc_current_top: std_logic_vector(31 downto 0);
+signal pc_plus4_top: std_logic_vector(31 downto 0);
+signal pc_branch_top: std_logic_vector(31 downto 0):= x"00000000";
+signal pc_jump_top: std_logic_vector(31 downto 0):= x"00000000";
+signal Isjump_top: std_logic:='0';
+signal Isbranch_top:std_logic_vector(1 downto 0):="11";
+signal branch_addr: std_logic_vector(31 downto 0):= x"00000000";
+signal jump_addr: std_logic_vector(31 downto 0):= x"00000000";
+--imem
 signal addressout_top: std_logic_vector(31 downto 0);
 signal instruction_top: std_logic_vector(31 downto 0);
 signal MemtoReg_top: std_logic;
@@ -60,15 +68,22 @@ signal SrcB: std_logic_vector(31 downto 0);
 signal aluresult_top: STD_LOGIC_VECTOR (31 downto 0);
 signal readdata_top: std_logic_vector(31 downto 0);
 signal ishalt_top: std_logic;
-signal isJump_top: std_logic;
+--signal isJump_top: std_logic;
 signal signAddress: std_logic_vector(31 downto 0);
---component pc port(
---         clk			 : in std_logic;
---		 reset			 : in std_logic;
---		 pc_current      : in std_logic_vector(31 downto 0);--current should come from the mux
---		 pc_next         : out std_logic_vector(31 downto 0)
---		 );
---end component;
+
+
+component pc port(
+		 clk			 : in std_logic;
+		 reset			 : in std_logic;
+		 Isjump          : in std_logic;
+		 Ishalt          :in std_logic;
+		 Isbranch        : in std_logic_vector(1 downto 0);
+		 pc_jump         : in std_logic_vector(31 downto 0);
+		 pc_branch      : in std_logic_vector(31 downto 0);
+		 pc_plus4      : in std_logic_vector(31 downto 0);
+		 pc_out         : out std_logic_vector(31 downto 0)
+		 );
+end component;
 component Imem port(
         PCin: in std_logic_vector(31 downto 0);
         rst: in std_logic;
@@ -83,7 +98,7 @@ component CU port(
         MemWrite    : OUT STD_LOGIC;
         --Branch      : INOUT STD_LOGIC;
         --PCSrc       : OUT STD_LOGIC;
-        --IsBranch    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);     -- 2-bit Branch Signal for ALU
+        IsBranch    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);     -- 2-bit Branch Signal for ALU
         ALUOP       : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);     -- 4-bit ALU Control for ALU
         ALUSrc      : OUT STD_LOGIC;
         RegDst      : OUT STD_LOGIC;
@@ -157,16 +172,21 @@ end component;
 
 
 begin
---u_pc: pc port map(
---    clk=>clk,
---    reset=>rst,
---    pc_current=>pc_current_test,
---    pc_next=>pc_next_top
---    );
+u_pc: pc port map(
+   clk=>clk,
+   reset=>rst,
+   Isjump=>Isjump_top,
+   Ishalt=>Ishalt_top,
+   Isbranch=>Isbranch_top,
+   pc_jump=>pc_jump_top,
+   pc_branch=>pc_branch_top,
+   pc_plus4=>pc_plus4_top,
+   pc_out=>pc_current_top
+    );
 u_Imem: Imem port map(
     clk=>clk,
     rst=>rst,
-    PCin=>pc_out,
+    PCin=>pc_current_top,
     addressout=>instruction_top,
     ishalt=>ishalt_top
     );
@@ -179,6 +199,7 @@ u_CU: CU port map(
     RegDst=>RegDst_top,
     RegWrite=>RegWrite_top,
     IsJump=>IsJump_top,
+    IsBranch=>Isbranch_top,
     Rot_Amount=>Rot_Amount_top
     );
 u_RF: RF port map(
@@ -234,30 +255,43 @@ u_mux4:mux4 port map(
     s=>MemtoReg_top,
     z=>result
     );      
-process(rst,clk)
-begin
-    if(rst='1')then
-        pc_out<=x"00000000";
-        pc_next<=x"00000000";
-    elsif(ishalt_top='0') then
-        if(clk'event and clk='1') then
-            if (isJump_top = '0') then
-                pc_out<=pc_next;
-                pc_next<=pc_out+x"00000004";
-                --pc_current_test<=pc_current_test+x"00000004";               
-           else
-                pc_out <=  pc_out + x"00000004"+(signAddress(29 downto 0) & "00");
-                pc_next<=pc_out+x"00000004";
-                --isJump_top <='0';
-           end if;
-        end if;
-    else
-        pc_out<=pc_out;
---        else
---            pc_current_test<=pc_current_test;
-        end if;
-    --end if;
-end process;
+--pc+4    
+with pc_current_top select
+pc_plus4_top<=x"00000004" when x"00000000",
+              pc_current_top+"100" when others;
+--pc_current_top+"100";
+--branch addr
+branch_addr<= pc_plus4_top+(SignImm(29 downto 0)&"00");   
+--jump addr
+jump_addr<= pc_plus4_top+(signAddress(29 downto 0)&"00");
+
+pc_branch_top<=branch_addr;
+pc_jump_top<= jump_addr;
+
+--process(rst,clk)
+--begin
+--    if(rst='1')then
+--        pc_out<=x"00000000";
+--        pc_next<=x"00000000";
+--    elsif(ishalt_top='0') then
+--        if(clk'event and clk='1') then
+--            if (isJump_top = '0') then
+--                pc_out<=pc_next;
+--                pc_next<=pc_out+x"00000004";
+--                --pc_current_test<=pc_current_test+x"00000004";               
+--           else
+--                pc_out <=  pc_out + x"00000004"+(signAddress(29 downto 0) & "00");
+--                pc_next<=pc_out+x"00000004";
+--                --isJump_top <='0';
+--           end if;
+--        end if;
+--    else
+--        pc_out<=pc_out;
+----        else
+----            pc_current_test<=pc_current_test;
+--        end if;
+--    --end if;
+--end process;
     --elsif(clk'event and clk='1')then
 --process(rst,clk)
 --begin
