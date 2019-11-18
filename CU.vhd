@@ -68,7 +68,11 @@ MemToReg    <=  LW;
 MemWrite    <=  SW;
 
 --InFun   <=  FUNC(5 DOWNTO 0);
-
+with opcode select
+    Isbranch<="00" when "001001",
+               "01"when "001010",
+               "10" when "001011",
+               "11" when others;
 PROCESS(OPCODE, FUNC)  --ALUOP SELECTION
 BEGIN    
     IF (OPCODE = "000000") THEN
@@ -94,21 +98,21 @@ BEGIN
     ELSIF (OPCODE = "000011" OR OPCODE = "000111" OR OPCODE = "001000") THEN    --ANDI \\ LW \\ SW
         IsRType <=  '0';
         ALUOP   <=  "000";  --ALUOP 000 = ADD
-    ELSIF (OPCODE = "001100") THEN    --JUMP
-        IsRType <=  '0';
-        ALUOP   <=  "000";
-    ELSIF (OPCODE = "001001") THEN  --BLT
-        IsRType     <=  '0';
-        IsBranch    <=  "00";
-        ALUOP       <=  "000";
-    ELSIF (OPCODE = "001010") THEN  --BEQ
-        IsRType     <=  '0';
-        IsBranch    <=  "01";
-        ALUOP       <=  "000";
-    ELSIF (OPCODE = "001011") THEN  --BNE
-        IsRType     <=  '0';
-        IsBranch    <=  "10";
-        ALUOP       <=  "000";
+--    ELSIF (OPCODE = "001100") THEN    --JUMP
+--        IsRType <=  '0';
+--        ALUOP   <=  "000";
+--    ELSIF (OPCODE = "001001") THEN  --BLT
+--        IsRType     <=  '0';
+--        IsBranch    <=  "00";
+--        ALUOP       <=  "000";
+--    ELSIF (OPCODE = "001010") THEN  --BEQ
+--        IsRType     <=  '0';
+--        IsBranch    <=  "01";
+--        ALUOP       <=  "000";
+--    ELSIF (OPCODE = "001011") THEN  --BNE
+--        IsRType     <=  '0';
+--        IsBranch    <=  "10";
+--        ALUOP       <=  "000";
     ELSIF (OPCODE = "000100") THEN  --ORI
         IsRType <=  '0';
         ALUOP   <=  "001";  --ALUOP 001 = OR
