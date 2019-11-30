@@ -47,18 +47,25 @@ entity RF is
 end RF;
 
 architecture Behavioral of RF is
-TYPE rom IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(31 DOWNTO 0); 
-signal drom: rom:=rom'( x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000");
-constant dromclr: rom:=rom'( x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000");
+TYPE rom IS ARRAY (0 TO 31) OF STD_LOGIC_VECTOR(31 DOWNTO 0); 
+signal drom: rom:=rom'( x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000");
+constant dromclr: rom:=rom'( x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",
+x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000",x"00000000");
 signal A1: std_logic_vector(4 downto 0);
 signal A2: std_logic_vector(4 downto 0);
 
 begin
 A1<=instr(25 downto 21);
 A2<=instr(20 downto 16);
-readdata1<=drom(to_integer(unsigned(A1)));
-readdata2<=drom(to_integer(unsigned(A2)));
-process(clk,rst)
+--with regwrt select
+-- drom(to_integer(unsigned(A3)))<=wrtdata when '1',
+--                                  drom(to_integer(unsigned(A3))) when others;
+process(clk,rst,regwrt,A3,wrtdata)
 begin
     if(rst='1')then
         drom<=dromclr;
@@ -68,4 +75,6 @@ begin
      end if;
     end if;
 end process;
+readdata1<=drom(to_integer(unsigned(A1)));
+readdata2<=drom(to_integer(unsigned(A2)));
 end Behavioral;

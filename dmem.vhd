@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-USE ieee.numeric_std.ALL;
+use ieee.std_logic_unsigned.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -40,45 +40,35 @@ entity dmem is
         addr: in std_logic_vector(31 downto 0);--32byte data
         wrtdata: in std_logic_vector(31 downto 0);
         readdata: out std_logic_vector(31 downto 0)
-        --currentwrtdata: out std_logic_vector(16 downto 0)
+        
      );
 end dmem;
 
 architecture Behavioral of dmem is
-TYPE rom IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(15 DOWNTO 0); 
-signal drom: rom:=rom'( "0000000000000000","0000000000000001","0000000000000010","0000000000000011","0000000000000100","0000000000000101","0000000000000110","0000000000000111");
---signal addrenable:std_logic;
---signal count:std_logic_vector(2 downto 0);
---signal count:std_logic_vector(7 downto 0);
-
+TYPE rom IS ARRAY (0 TO 55) OF STD_LOGIC_VECTOR(15 DOWNTO 0); 
+signal drom: rom:=rom'( X"9BBB",X"1A37",X"46F8",X"460C",X"70F8",X"284B",X"513E",X"F621",X"3125",X"11A8",X"D427",X"713A",X"4B79",X"2799",X"A790",X"DEDE",X"36C0",X"A7EF",X"61A7",X"3B0A",X"4DBF",X"AE16",X"30D7",X"4319",X"F6CC",X"6504",X"D8C8",X"F7FB",X"E8C5",X"6085",X"3B8A",X"8303",X"1454",X"ED22",X"065D",X"3A5D",X"686B",X"D82D",X"2F99",X"A4DD",X"1C49",X"871A",X"3196",X"C249",X"8BB8",X"1D2B",X"CA76",X"2167",X"6B0A",X"2304",X"1431",X"6380",X"0000",X"0000",X"0000",X"0000");
+signal wrtenable_inside: std_logic_vector(31 downto 0);
 begin
-process(addr)
-begin
-    if(unsigned(addr)<8)then
-        drom(to_integer(unsigned(addr)))<= wrtdata(31 downto 16);
-        drom(to_integer(unsigned(addr)+1))<= wrtdata(15 downto 0);
-        --addrenable<='1';
-    --else
-       -- addrenable<='0';
-    end if;
-end process;
 
-process(clk,rst)
-    begin
-        if(rst='1') then
-             readdata <="00000000000000000000000000000000";
-        elsif(clk 'event and clk='1') then
-            if(wrtenable='1') then
-               readdata<=drom(to_integer(unsigned(addr)))&drom(to_integer(unsigned(addr)+1));
---            elsif (wrtenable="10") then
-
---            else
---                 drom<=drom;
-             end if;
-           end if;
-end process;
-          
-               
+process(clk,wrtenable) begin
+   --if(rst = '1') then
+    
+   if( rising_edge(clk)) then
+           -- if(CONV_INTEGER(addr) < 55) then
             
-        
+--                if(wrtenable ='0') then
+--                    readdata <= x"0000" & drom(CONV_INTEGER(addr));
+--				else
+				 if(wrtenable ='1') then
+				    drom(CONV_INTEGER(addr)) <= wrtdata(15 DOWNTO 0);	
+                    --wrtenable_inside <= x"0000" & wrtdata(15 DOWNTO 0); 
+                    
+                end if;
+                
+            end if;
+        --end if;
+     --end if;         
+end process;  
+   readdata <= x"0000" & drom(CONV_INTEGER(addr)) when addr<x"38"
+               else x"00000000";        
 end Behavioral;

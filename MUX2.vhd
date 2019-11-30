@@ -43,24 +43,25 @@ architecture Behavioral of mux2 is
  
 
 begin
-
+z<= x when (s='0') else
+    y;
  
 
-process (x,y,s) is
+--process (x,y,s) is
 
-begin
+--begin
 
-if (s ='0') then
+--if (s ='0') then
 
-z <= x;
+--z <= x;
 
-else
+--else
 
-z <= y;
+--z <= y;
 
-end if;
+--end if;
 
-end process;
+--end process;
 
  
 

@@ -95,22 +95,22 @@ BEGIN
             WHEN OTHERS =>
                 ALUOP   <=  "111"; --HALT
         END CASE;
-    ELSIF (OPCODE = "000011" OR OPCODE = "000111" OR OPCODE = "001000") THEN    --ANDI \\ LW \\ SW
+    ELSIF (OPCODE = "000011" ) THEN    --ANDI 
         IsRType <=  '0';
         ALUOP   <=  "000";  --ALUOP 000 = ADD
---    ELSIF (OPCODE = "001100") THEN    --JUMP
---        IsRType <=  '0';
+    ELSIF (OPCODE = "001100") THEN    --JUMP
+        IsRType <=  '0';
 --        ALUOP   <=  "000";
---    ELSIF (OPCODE = "001001") THEN  --BLT
---        IsRType     <=  '0';
+   ELSIF (OPCODE = "001001") THEN  --BLT
+        IsRType     <=  '0';
 --        IsBranch    <=  "00";
 --        ALUOP       <=  "000";
---    ELSIF (OPCODE = "001010") THEN  --BEQ
---        IsRType     <=  '0';
+    ELSIF (OPCODE = "001010") THEN  --BEQ
+        IsRType     <=  '0';
 --        IsBranch    <=  "01";
 --        ALUOP       <=  "000";
---    ELSIF (OPCODE = "001011") THEN  --BNE
---        IsRType     <=  '0';
+    ELSIF (OPCODE = "001011") THEN  --BNE
+        IsRType     <=  '0';
 --        IsBranch    <=  "10";
 --        ALUOP       <=  "000";
     ELSIF (OPCODE = "000100") THEN  --ORI
@@ -119,6 +119,9 @@ BEGIN
     ELSIF (OPCODE = "111111") THEN  --HALT
         IsRType <=  '0';
         ALUOP   <=  "111";  --ALUOP 111 = HALT
+    ELSIF (OPCODE = "000111" OR OPCODE = "001000") THEN --LW \\ SW
+        IsRType <=  '0';
+        ALUOP   <=  "001";  --ALUOP 111 = HALT
     END IF;
 END PROCESS;
 

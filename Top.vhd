@@ -81,7 +81,9 @@ component pc port(
 		 pc_jump         : in std_logic_vector(31 downto 0);
 		 pc_branch      : in std_logic_vector(31 downto 0);
 		 pc_plus4      : in std_logic_vector(31 downto 0);
-		 pc_out         : out std_logic_vector(31 downto 0)
+		 pc_out         : out std_logic_vector(31 downto 0);
+		 read_data1     : in std_logic_vector(31 downto 0);
+		 read_data2     :in std_logic_vector(31 downto 0)
 		 );
 end component;
 component Imem port(
@@ -181,7 +183,9 @@ u_pc: pc port map(
    pc_jump=>pc_jump_top,
    pc_branch=>pc_branch_top,
    pc_plus4=>pc_plus4_top,
-   pc_out=>pc_current_top
+   pc_out=>pc_current_top,
+   read_data1 =>  readdata1_top,
+   read_data2 =>  readdata2_top
     );
 u_Imem: Imem port map(
     clk=>clk,
@@ -254,7 +258,15 @@ u_mux4:mux4 port map(
     y=>readdata_top,
     s=>MemtoReg_top,
     z=>result
-    );      
+    );
+    
+--process(clk,rst)
+--begin
+--    if(rst='1')then
+--        result<=x"00000000";
+--    end if;
+--end process;
+              
 --pc+4    
 with pc_current_top select
 pc_plus4_top<=x"00000004" when x"00000000",

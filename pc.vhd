@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.std_logic_signed.all;
+use IEEE.std_logic_unsigned.all;
 
 entity pc is
   	 port(
@@ -12,7 +12,9 @@ entity pc is
 		 pc_jump         : in std_logic_vector(31 downto 0);
 		 pc_branch      : in std_logic_vector(31 downto 0);
 		 pc_plus4      : in std_logic_vector(31 downto 0);
-		 pc_out         : out std_logic_vector(31 downto 0)
+		 pc_out         : out std_logic_vector(31 downto 0);
+		 read_data1     : in std_logic_vector(31 downto 0);
+		 read_data2     : in std_logic_vector(31 downto 0) 
 	 );
 end pc;
 
@@ -27,8 +29,24 @@ begin
     elsif(clk'event and clk='1') then
         if(Isjump='1')then 
             pc_inside<= pc_jump; --jump or branch
-        elsif (Isbranch="00" or Isbranch="01" or Isbranch="10") then
-            pc_inside<= pc_branch;
+        elsif (Isbranch="00" ) then -- blt
+            if (read_data1 > read_data2) then
+                pc_inside<= pc_branch;
+            else  
+                pc_inside <= pc_plus4;
+            end if;
+        elsif (Isbranch="01" ) then -- beq
+            if (read_data1 = read_data2) then
+                pc_inside<= pc_branch;
+            else  
+                pc_inside <= pc_plus4;
+            end if;
+        elsif (Isbranch="10") then -- bne
+            if (read_data1 /= read_data2) then
+                pc_inside<= pc_branch;
+            else  
+                pc_inside <= pc_plus4;
+            end if;
         elsif (Ishalt='1')then
             pc_inside<=pc_inside;
         else

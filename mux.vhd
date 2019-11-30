@@ -24,21 +24,19 @@ use IEEE.STD_LOGIC_1164.ALL;
 
  
 
-entity mux4 is
+entity mux2x1 is
 
-port(
-x,y : in STD_LOGIC_VECTOR(31 DOWNTO 0);
+port(x,y : in STD_LOGIC;
 
 s: in STD_LOGIC;
 
-z: out STD_LOGIC_VECTOR(31 DOWNTO 0)
-);
+z: out STD_LOGIC);
 
-end mux4 ;
+end mux2x1 ;
 
  
 
-architecture Behavioral of mux4 is
+architecture Behavioral of mux2x1 is
 
  
 
@@ -68,3 +66,4 @@ z<= x when (s='0') else
  
 
 end Behavioral;
+
