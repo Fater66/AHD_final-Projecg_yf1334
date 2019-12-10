@@ -13,7 +13,7 @@ ENTITY CU IS
         Branch      : INOUT STD_LOGIC;
         PCSrc       : OUT STD_LOGIC;
         IsBranch    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);     -- 2-bit Branch Signal for ALU
-        ALUOP       : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);     -- 4-bit ALU Control for ALU
+        ALUOP       : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);     -- 4-bit ALU Control for ALU
         ALUSrc      : OUT STD_LOGIC;
         RegDst      : OUT STD_LOGIC;
         RegWrite    : OUT STD_LOGIC;
@@ -79,25 +79,25 @@ BEGIN
         IsRType <= '1';
         CASE FUNC IS
             WHEN "010010" =>
-                ALUOP   <=  "000"; --AND
+                ALUOP   <=  "0000"; --AND
             WHEN "010011" =>
-                ALUOP   <=  "001"; --OR
+                ALUOP   <=  "0001"; --OR
             WHEN "010100" =>
-                ALUOP   <=  "010"; --NOR
+                ALUOP   <=  "0010"; --NOR
             WHEN "010000" =>
-                ALUOP   <=  "011"; --XRLR
+                ALUOP   <=  "0011"; --XRLR
             WHEN "010001" =>
-                ALUOP   <=  "100"; --RRXR
+                ALUOP   <=  "0100"; --RRXR
             WHEN "010101" =>
-                ALUOP   <=  "101"; --LRAD
+                ALUOP   <=  "0101"; --LRAD
             WHEN "010110" =>
-                ALUOP   <=  "110"; --SBRR
+                ALUOP   <=  "0110"; --SBRR
             WHEN OTHERS =>
-                ALUOP   <=  "111"; --HALT
+                ALUOP   <=  "1111"; --HALT
         END CASE;
     ELSIF (OPCODE = "000011" ) THEN    --ANDI 
         IsRType <=  '0';
-        ALUOP   <=  "000";  --ALUOP 000 = ADD
+        ALUOP   <=  "0000";  --ALUOP 0000 = AND
     ELSIF (OPCODE = "001100") THEN    --JUMP
         IsRType <=  '0';
 --        ALUOP   <=  "000";
@@ -115,13 +115,13 @@ BEGIN
 --        ALUOP       <=  "000";
     ELSIF (OPCODE = "000100") THEN  --ORI
         IsRType <=  '0';
-        ALUOP   <=  "001";  --ALUOP 001 = OR
+        ALUOP   <=  "0001";  --ALUOP 001 = OR
     ELSIF (OPCODE = "111111") THEN  --HALT
         IsRType <=  '0';
-        ALUOP   <=  "111";  --ALUOP 111 = HALT
+        ALUOP   <=  "1111";  --ALUOP 1111 = HALT
     ELSIF (OPCODE = "000111" OR OPCODE = "001000") THEN --LW \\ SW
         IsRType <=  '0';
-        ALUOP   <=  "001";  --ALUOP 111 = HALT
+        ALUOP   <=  "0111";  --ALUOP 0111 = ADD
     END IF;
 END PROCESS;
 

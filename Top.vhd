@@ -34,11 +34,33 @@ use IEEE.std_logic_unsigned.all;
 entity Top is
   Port ( 
         clk: in std_logic;
-        rst: in std_logic       
+        clr: in std_logic;
+        sw: in std_logic_vector(15 downto 0);   
+        led: out std_logic_vector(15 downto 0);
+        BTNU: in std_logic; --ukey input begin/end
+        BTNR: in std_logic; --ukey&din input seperate
+        BTNL: in std_logic; --din input  begin/end
+        --BTNC: in std_logic; --din sepetate
+        BTND: in std_logic; -- enc or dec select
+        SSEG_CA 		: out  STD_LOGIC_VECTOR (7 downto 0);
+        SSEG_AN 		: out  STD_LOGIC_VECTOR (7 downto 0)    
     );
 end Top;
 
 architecture Behavioral of Top is
+signal clk50: std_logic;
+signal clrinside: std_logic;
+--input
+       type s_type is(state0, state1, state2, state3, state4, state5, state6, state7, state8);
+              signal stateukey : s_type;
+       type s_type2 is(state0, state1, state2, state3, state4);
+              signal statedin : s_type2;
+signal ukey: std_logic_vector(127 downto 0);
+signal ukeyready: std_logic;
+signal ukeycount: std_logic_vector(1 downto 0);
+signal dinready: std_logic;
+signal dincount: std_logic_vector(1 downto 0);
+signal din: std_logic_vector(63 downto 0);
 --pc
 signal pc_current_top: std_logic_vector(31 downto 0);
 signal pc_plus4_top: std_logic_vector(31 downto 0);
@@ -53,7 +75,7 @@ signal addressout_top: std_logic_vector(31 downto 0);
 signal instruction_top: std_logic_vector(31 downto 0);
 signal MemtoReg_top: std_logic;
 signal MemWrite_top: std_logic;
-signal ALUOP_top: STD_LOGIC_VECTOR(2 DOWNTO 0); 
+signal ALUOP_top: STD_LOGIC_VECTOR(3 DOWNTO 0); 
 signal ALUSrc_top :  STD_LOGIC;
 signal RegDst_top : STD_LOGIC;
 signal RegWrite_top: STD_LOGIC;
@@ -70,8 +92,15 @@ signal readdata_top: std_logic_vector(31 downto 0);
 signal ishalt_top: std_logic;
 --signal isJump_top: std_logic;
 signal signAddress: std_logic_vector(31 downto 0);
+--RF out
+signal dout_top:std_logic_vector(31 downto 0);
 
-
+--component clk_wiz_0 port(
+--    clk_in1: in std_logic;
+--    reset: in std_logic;
+--    clk_out1: out std_logic
+--    );
+--end component;
 component pc port(
 		 clk			 : in std_logic;
 		 reset			 : in std_logic;
@@ -82,6 +111,8 @@ component pc port(
 		 pc_branch      : in std_logic_vector(31 downto 0);
 		 pc_plus4      : in std_logic_vector(31 downto 0);
 		 pc_out         : out std_logic_vector(31 downto 0);
+         BTND            :in std_logic;
+         sw             : in std_logic_vector(15 downto 0);
 		 read_data1     : in std_logic_vector(31 downto 0);
 		 read_data2     :in std_logic_vector(31 downto 0)
 		 );
@@ -101,7 +132,7 @@ component CU port(
         --Branch      : INOUT STD_LOGIC;
         --PCSrc       : OUT STD_LOGIC;
         IsBranch    : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);     -- 2-bit Branch Signal for ALU
-        ALUOP       : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);     -- 4-bit ALU Control for ALU
+        ALUOP       : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);     -- 4-bit ALU Control for ALU
         ALUSrc      : OUT STD_LOGIC;
         RegDst      : OUT STD_LOGIC;
         RegWrite    : OUT STD_LOGIC;
@@ -120,6 +151,7 @@ component RF port(
         A3: in std_logic_vector(4 downto 0);-- comes from the mux
         regwrt: in std_logic;--'1' enable,'0' unable
         wrtdata: in std_logic_vector(31 downto 0);--comes from the mux
+        dout: out std_logic_vector(31 downto 0);
         readdata1: out std_logic_vector(31 downto 0);
         readdata2: out std_logic_vector(31 downto 0)   
         );
@@ -152,7 +184,7 @@ component ALU port(
            op1 : in STD_LOGIC_VECTOR (31 downto 0);
            op2 : in STD_LOGIC_VECTOR (31 downto 0);
            shiftamount:in STD_LOGIC_VECTOR(2 downto 0);
-           aluop : in STD_LOGIC_VECTOR (2 downto 0);
+           aluop : in STD_LOGIC_VECTOR (3 downto 0);
            aluresult : out STD_LOGIC_VECTOR (31 downto 0)
            );
 end component;
@@ -161,6 +193,10 @@ component dmem port(
         clk: in std_logic;
         rst: in std_logic;
         addr: in std_logic_vector(31 downto 0);--32byte data
+        ukey: in std_logic_vector(127 downto 0);
+        ukeyready: in std_logic;
+        din: in std_logic_vector(63 downto 0);
+        dinready: in std_logic;
         wrtdata: in std_logic_vector(31 downto 0);
         readdata: out std_logic_vector(31 downto 0)
         );
@@ -171,12 +207,24 @@ component mux4 port(
     z: out STD_LOGIC_VECTOR(31 DOWNTO 0)
     );
 end component;
-
-
+component SevenSeg_Top port(
+           CLK 			: in  STD_LOGIC;
+           data_in      : in   STD_LOGIC_VECTOR (31 downto 0);
+           SSEG_CA 		: out  STD_LOGIC_VECTOR (7 downto 0);
+           SSEG_AN 		: out  STD_LOGIC_VECTOR (7 downto 0)
+           );
+end component;
 begin
+clrinside<=not clr;
+clk50<=clk;
+--u_clock: clk_wiz_0 port map(
+--    clk_in1=>clk,
+--    reset=>clrinside,
+--    clk_out1=>clk50
+--    );
 u_pc: pc port map(
-   clk=>clk,
-   reset=>rst,
+   clk=>clk50,
+   reset=>clrinside,
    Isjump=>Isjump_top,
    Ishalt=>Ishalt_top,
    Isbranch=>Isbranch_top,
@@ -184,12 +232,14 @@ u_pc: pc port map(
    pc_branch=>pc_branch_top,
    pc_plus4=>pc_plus4_top,
    pc_out=>pc_current_top,
+   BTND=>BTND,
+   sw=>sw,
    read_data1 =>  readdata1_top,
    read_data2 =>  readdata2_top
     );
 u_Imem: Imem port map(
-    clk=>clk,
-    rst=>rst,
+    clk=>clk50,
+    rst=>clrinside,
     PCin=>pc_current_top,
     addressout=>instruction_top,
     ishalt=>ishalt_top
@@ -207,12 +257,13 @@ u_CU: CU port map(
     Rot_Amount=>Rot_Amount_top
     );
 u_RF: RF port map(
-    clk=>clk,
-    rst=>rst,
+    clk=>clk50,
+    rst=>clrinside,
     instr=>instruction_top,
     A3=>MUX2_out,
     regwrt=>RegWrite_top,
     wrtdata=>result,
+    dout=>dout_top,
     readdata1=>readdata1_top,
     readdata2=>readdata2_top
     );
@@ -237,8 +288,8 @@ u_mux3:mux3 port map(
     s=>ALUSRC_top
     );
 u_ALU: ALU port map(
-    clk=>clk,
-    rst=>rst,
+    clk=>clk50,
+    rst=>clrinside,
     op1=>readdata1_top,
     op2=>SrcB,
     shiftamount=>instruction_top(8 downto 6),
@@ -246,10 +297,14 @@ u_ALU: ALU port map(
     aluresult=>aluresult_top
     );
 u_dmem:dmem port map(
-    clk=>clk,
-    rst=>rst,
+    clk=>clk50,
+    rst=>clrinside,
     wrtenable=>MemWrite_top,
     addr=>aluresult_top,
+    ukey=>ukey,
+    ukeyready=>ukeyready,
+    din=>din,
+    dinready=>dinready,
     wrtdata=>readdata2_top,
     readdata=>readdata_top
     );
@@ -259,13 +314,13 @@ u_mux4:mux4 port map(
     s=>MemtoReg_top,
     z=>result
     );
+u_sevenSeg: SevenSeg_Top port map(
+    clk=>clk50,  
+    data_in=>dout_top(31 downto 0),
+    SSEG_CA=>SSEG_CA,
+    SSEG_AN=>SSEG_AN
+    );
     
---process(clk,rst)
---begin
---    if(rst='1')then
---        result<=x"00000000";
---    end if;
---end process;
               
 --pc+4    
 with pc_current_top select
@@ -280,42 +335,72 @@ jump_addr<= pc_plus4_top+(signAddress(29 downto 0)&"00");
 pc_branch_top<=branch_addr;
 pc_jump_top<= jump_addr;
 
---process(rst,clk)
---begin
---    if(rst='1')then
---        pc_out<=x"00000000";
---        pc_next<=x"00000000";
---    elsif(ishalt_top='0') then
---        if(clk'event and clk='1') then
---            if (isJump_top = '0') then
---                pc_out<=pc_next;
---                pc_next<=pc_out+x"00000004";
---                --pc_current_test<=pc_current_test+x"00000004";               
---           else
---                pc_out <=  pc_out + x"00000004"+(signAddress(29 downto 0) & "00");
---                pc_next<=pc_out+x"00000004";
---                --isJump_top <='0';
---           end if;
---        end if;
---    else
---        pc_out<=pc_out;
-----        else
-----            pc_current_test<=pc_current_test;
---        end if;
---    --end if;
---end process;
-    --elsif(clk'event and clk='1')then
---process(rst,clk)
---begin
---    if(rst='1')then
---        pc_current_test<=x"00000000";
---    elsif(rising_edge(clk)) then
---             if (isJump_top = '0') then pc_current_test <= pc_current_test + x"00000004";
---             else 
---                pc_current_test <=  pc_current_test + x"00000004"+(signAddress(29 downto 0) & "00");
---             end if;
---    end if;
---end process;        
-     
+--ukey input
+ukeycounterinitial: process(clr,BTNU,BTNL)
+begin
+    if(clrinside='1') then 
+        ukeycount<="00";
+    --elsif(clk50' event and clk50='1') then
+     elsif ((BTNL='0')and (BTNU='1')) then
+       case ukeycount is
+        when"00"=> ukeycount<="01";
+        when"01"=> ukeycount<="10";
+        when others=>ukeycount<="10";
+       end case;
+    end if;
+   --end if;
+end process;
 
+ukeyFSM: process(clr,ukeycount,BTNR,clk50)
+    begin
+        if(clrinside='1') then
+            stateukey<=state0;ukey<=x"00000000000000000000000000000000";LED(0)<='0';ukeyready<='0';LED(15)<='0';
+        elsif(clk50' event and clk50='1') then
+            if(ukeycount="01")then
+            case stateukey is  
+                when state0=> if BTNR='1' then stateukey<=state1;ukey(15 downto 0)<=sw; end if;
+                when state1=> if BTNR='1' then stateukey<=state2;ukey(31 downto 16)<=sw; end if;
+                when state2=> if BTNR='1' then stateukey<=state3;ukey(47 downto 32)<=sw; end if;
+                when state3=> if BTNR='1' then stateukey<=state4;ukey(63 downto 48)<=sw; end if;
+                when state4=> if BTNR='1' then stateukey<=state5;ukey(79 downto 64)<=sw; end if;
+                when state5=> if BTNR='1' then stateukey<=state6;ukey(95 downto 80)<=sw; end if;
+                when state6=> if BTNR='1' then stateukey<=state7;ukey(111 downto 96)<=sw; end if;
+                when state7=> if BTNR='1' then stateukey<=state8;ukey(127 downto 112)<=sw;LED(0)<='1';LED(15)<='1';ukeyready<='1'; end if;--ukey ready
+                when state8=> if BTNR='1' then ukeyready<='0'; LED(0)<='0'; end if;
+            end case;
+         end if;
+       end if;
+     end process;
+     
+dincounterinitial: process(clr,ukeycount,BTNU,BTNL)
+    begin
+       if(clrinside='1') then 
+        dincount<="00";
+    --elsif(clk50' event and clk50='1') then
+     elsif ((BTNL='1')and (BTNU='0')) then
+       case dincount is
+        when"00"=> dincount<="01";
+        when"01"=> dincount<="10";
+        when others=>dincount<="10";
+       end case;
+     end if;
+   -- end if;
+end process;
+
+dinFSM: process(clr,dincount,BTNR,clk50)
+    begin
+        if(clrinside='1') then
+            statedin<=state0;din<=x"0000000000000000";LED(0)<='0';dinready<='0';LED(14)<='0';
+        elsif(clk50' event and clk50='1') then
+            if(dincount="01")then
+            case statedin is  
+                when state0=> if BTNR='1' then statedin<=state1;din(15 downto 0)<=sw; end if;
+                when state1=> if BTNR='1' then statedin<=state2;din(31 downto 16)<=sw; end if;
+                when state2=> if BTNR='1' then statedin<=state3;din(47 downto 32)<=sw; end if;
+                when state3=> if BTNR='1' then statedin<=state3;din(63 downto 48)<=sw;LED(1)<='1';LED(14)<='1';dinready<='1'; end if;--dinready
+                when state4=> if BTNR='1' then LED(1)<='0';dinready<='0'; end if;             
+            end case;
+         end if;
+       end if;
+     end process;
 end Behavioral;

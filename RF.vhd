@@ -41,6 +41,7 @@ entity RF is
         A3: in std_logic_vector(4 downto 0);-- comes from the mux
         regwrt: in std_logic;--'1' enable,'0' unable
         wrtdata: in std_logic_vector(31 downto 0);--comes from the mux
+        dout: out std_logic_vector(31 downto 0);
         readdata1: out std_logic_vector(31 downto 0);
         readdata2: out std_logic_vector(31 downto 0)       
    );
@@ -65,11 +66,14 @@ A2<=instr(20 downto 16);
 --with regwrt select
 -- drom(to_integer(unsigned(A3)))<=wrtdata when '1',
 --                                  drom(to_integer(unsigned(A3))) when others;
+
 process(clk,rst,regwrt,A3,wrtdata)
 begin
     if(rst='1')then
-        drom<=dromclr;
+        drom<=dromclr; 
+        dout<=  x"00000000";      
     elsif (clk'event and clk='1') then
+     dout<= drom(2);
      if(regwrt='1') then
         drom(to_integer(unsigned(A3)))<=wrtdata;
      end if;
@@ -77,4 +81,7 @@ begin
 end process;
 readdata1<=drom(to_integer(unsigned(A1)));
 readdata2<=drom(to_integer(unsigned(A2)));
+--dout<=  x"00000000" when rst='1'
+--        else drom(2);
+--dout<= drom(2);
 end Behavioral;

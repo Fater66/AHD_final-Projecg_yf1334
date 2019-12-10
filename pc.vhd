@@ -9,6 +9,8 @@ entity pc is
 		 Isjump          : in std_logic;
 		 Ishalt          :in std_logic;
 		 Isbranch        : in std_logic_vector(1 downto 0);
+		 BTND            : in std_logic;
+		 sw              : in std_logic_vector(15 downto 0);
 		 pc_jump         : in std_logic_vector(31 downto 0);
 		 pc_branch      : in std_logic_vector(31 downto 0);
 		 pc_plus4      : in std_logic_vector(31 downto 0);
@@ -48,7 +50,17 @@ begin
                 pc_inside <= pc_plus4;
             end if;
         elsif (Ishalt='1')then
-            pc_inside<=pc_inside;
+            if(BTND='1') then
+                if (sw(1 downto 0)="00") then--keygen
+                    pc_inside<=pc_inside+"100";
+                elsif(sw(1 downto 0)="01") then--enc
+                    pc_inside<=pc_inside+"111";--for enc pc beginning--changing after
+                elsif(sw(1 downto 0)="10") then--dec
+                    pc_inside<=pc_inside+"101";--for dec pc beginning--changing after
+                end if;
+             else
+                     pc_inside<=pc_inside;
+                end if;
         else
             pc_inside <= pc_plus4;--+ x"00000004";
         end if;

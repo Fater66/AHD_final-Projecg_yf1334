@@ -38,7 +38,7 @@ entity ALU is
            op1 : in STD_LOGIC_VECTOR (31 downto 0);
            op2 : in STD_LOGIC_VECTOR (31 downto 0);
            shiftamount:in STD_LOGIC_VECTOR(2 downto 0);
-           aluop : in STD_LOGIC_VECTOR (2 downto 0);
+           aluop : in STD_LOGIC_VECTOR (3 downto 0);
            aluresult : out STD_LOGIC_VECTOR (31 downto 0)
            );
  
@@ -98,14 +98,15 @@ with shiftamount select
                       Rs_Rt(6 downto 0)& Rs_Rt(31 downto 7) when "111",
                       Rs_Rt when others;
                       
-with aluop(2 downto 0 )select
-          alucalculate<= op1 and op2 when"000",
-                        op1 or op2 when"001",
-                        op1 nor op2 when"010",
-                        xorleftrotate when "011",
-                        Rsrightrotate xor op2 when "100",
-                        Rsleftrotate + op2 when"101",
-                       Rs_Rtrightrotate when"110",
+with aluop(3 downto 0 )select
+          alucalculate<= op1 and op2 when"0000",
+                        op1 or op2 when"0001",
+                        op1 nor op2 when"0010",
+                        xorleftrotate when "0011",
+                        Rsrightrotate xor op2 when "0100",
+                        Rsleftrotate + op2 when"0101",
+                       Rs_Rtrightrotate when"0110",
+                       op1 + op2 when "0111",
                         x"00000000" when others;
 aluresult<= alucalculate;
 --process(clk,rst,aluop)
